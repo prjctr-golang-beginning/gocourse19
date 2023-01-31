@@ -1,3 +1,5 @@
+package main
+
 import (
 	"context"
 	"fmt"
@@ -6,32 +8,30 @@ import (
 
 var ctx = context.Background()
 
-func ExampleClient() {
+func main() {
 	rdb := redis.NewClient(&redis.Options{
 		Addr:     "localhost:6379",
-		Password: "", // no password set
-		DB:       0,  // use default DB
+		Password: "mycomplicatedpassword",
+		DB:       0, // use default DB
 	})
 
-	err := rdb.Set(ctx, "key", "value", 0).Err()
+	err := rdb.Set(ctx, "user:name", "Maks Morozov", 0).Err()
 	if err != nil {
 		panic(err)
 	}
 
-	val, err := rdb.Get(ctx, "key").Result()
+	val, err := rdb.Get(ctx, "user:name").Result()
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("key", val)
+	fmt.Println("user:name", val)
 
-	val2, err := rdb.Get(ctx, "key2").Result()
+	val2, err := rdb.Get(ctx, "user:phone-number").Result()
 	if err == redis.Nil {
-		fmt.Println("key2 does not exist")
+		fmt.Println("user:phone-number does not exist")
 	} else if err != nil {
 		panic(err)
 	} else {
-		fmt.Println("key2", val2)
+		fmt.Println("user:phone-number", val2)
 	}
-	// Output: key value
-	// key2 does not exist
 }
