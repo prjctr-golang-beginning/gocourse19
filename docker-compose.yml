@@ -1,14 +1,17 @@
-version: '3'
-
+version: "3.2"
 services:
-  cache:
-    image: redis:latest
-    restart: always
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: 'rabbitmq'
     ports:
-      - '6379:6379'
-    command: redis-server --save 20 1 --loglevel warning --requirepass mycomplicatedpassword
+      - 5672:5672
+      - 15672:15672
     volumes:
-      - cache:/data
-volumes:
-  cache:
-    driver: local
+      - .docker/rabbitmq/data/:/var/lib/rabbitmq/
+      - .docker/rabbitmq/log/:/var/log/rabbitmq
+    networks:
+      - rabbitmq_go_net
+
+networks:
+  rabbitmq_go_net:
+    driver: bridge
