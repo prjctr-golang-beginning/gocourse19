@@ -15,7 +15,7 @@ const (
 )
 
 var (
-	errNotConnected = errors.New("Consumer: not connected to the server")
+	errNotConnected = errors.New("consumer: not connected to the server")
 )
 
 type Slave struct {
@@ -23,9 +23,6 @@ type Slave struct {
 	channel         *amqp.Channel
 	done            chan struct{}
 	closed          chan struct{}
-	notifyConnClose chan *amqp.Error
-	notifyChanClose chan *amqp.Error
-	notifyConfirm   chan amqp.Confirmation
 	delivery        <-chan amqp.Delivery
 	isReady         bool
 	IsDeliveryReady bool
@@ -75,10 +72,6 @@ func (s *Slave) init(_ context.Context) error {
 	}
 
 	s.channel = ch
-	s.notifyChanClose = make(chan *amqp.Error, 1)
-	s.notifyConfirm = make(chan amqp.Confirmation, 1)
-	s.channel.NotifyClose(s.notifyChanClose)
-	s.channel.NotifyPublish(s.notifyConfirm)
 	s.isReady = true
 	s.closed = make(chan struct{})
 	log.Println("Consumer: SETUP")

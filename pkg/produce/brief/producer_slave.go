@@ -16,20 +16,12 @@ const (
 )
 
 type Slave struct {
-	master          *Master
-	channel         *amqp.Channel
-	done            chan struct{}
-	notifyChanClose chan *amqp.Error
-	notifyConfirm   chan amqp.Confirmation
-	notifyFlow      chan bool
-	IsReady         bool
-	tm              *time.Ticker
+	master  *Master
+	channel *amqp.Channel
+	done    chan struct{}
+	IsReady bool
+	tm      *time.Ticker
 }
-
-var (
-	errShutdown     = errors.New("-- Producer session shut down")
-	errConnNotReady = errors.New("Producer: connection not ready")
-)
 
 func NewSlave(ctx context.Context, master *Master) (*Slave, error) {
 	session := Slave{
@@ -72,16 +64,6 @@ func (s *Slave) init(ctx context.Context) error {
 	}
 
 	s.channel = ch
-	s.notifyChanClose = make(chan *amqp.Error, 1)
-	s.notifyConfirm = make(chan amqp.Confirmation, 1)
-	s.channel.NotifyClose(s.notifyChanClose)
-	s.channel.NotifyPublish(s.notifyConfirm)
-
-	// research block, is this notification will be flashed
-	s.notifyFlow = make(chan bool, 1)
-	s.channel.NotifyFlow(s.notifyFlow)
-
-	go s.listenFlow(ctx)
 	s.IsReady = true
 	s.done = make(chan struct{})
 	log.Println("Producer: SETUP")
@@ -116,41 +98,7 @@ func (s *Slave) declarationAndBinding(_ context.Context, ch *amqp.Channel) (err 
 	return
 }
 
-func (s *Slave) listenFlow(_ context.Context) {
-	for {
-		select {
-		case res, ok := <-s.notifyFlow:
-			log.Println("Producer: receive notifyFlow = %v, is closed = %v", res, ok)
-			if !ok {
-				return
-			}
-		}
-	}
-}
-
-func (s *Slave) Push(_ context.Context, rk string, body []byte) error {
-	tm := time.NewTicker(resendDelay)
-	defer tm.Stop()
-
-	retries := 0
-	for {
-		if !s.IsReady {
-			if retries > pushRetries {
-				return errors.New("Producer: failed to push")
-			} else {
-				log.Println("Producer: failed to push. Retrying...")
-				retries++
-				time.Sleep(channelReconnectDelay)
-			}
-		} else {
-			break
-		}
-	}
-
-	return s.UnsafePush(rk, body)
-}
-
-func (s *Slave) UnsafePush(rk string, body []byte) error {
+func (s *Slave) Push(rk string, body []byte) error {
 	if !s.IsReady {
 		return errors.New(fmt.Sprintf("Producer: connection not ready"))
 	}

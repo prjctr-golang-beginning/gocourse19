@@ -4,23 +4,16 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
-	"time"
-
 	"github.com/streadway/amqp"
-)
-
-const (
-	connectionReconnectDelay = 5 * time.Second
+	"log"
 )
 
 type Master struct {
-	exName          string
-	connection      *amqp.Connection
-	done            chan struct{}
-	notifyConnClose chan *amqp.Error
-	isReady         bool
-	ackTag          chan uint64
+	exName     string
+	connection *amqp.Connection
+	done       chan struct{}
+	isReady    bool
+	ackTag     chan uint64
 }
 
 func NewMaster(ctx context.Context, exName, busHost, busUser, busPass string) (*Master, error) {
@@ -47,8 +40,6 @@ func (s *Master) connect(_ context.Context, busHost, busUser, busPass string) er
 	}
 
 	s.connection = conn
-	s.notifyConnClose = make(chan *amqp.Error, 1)
-	s.connection.NotifyClose(s.notifyConnClose)
 	s.isReady = true
 	s.done = make(chan struct{})
 	log.Println("Producer: CONNECTED")

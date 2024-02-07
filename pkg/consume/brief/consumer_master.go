@@ -9,11 +9,10 @@ import (
 )
 
 type Master struct {
-	qName           string
-	connection      *amqp.Connection
-	done            chan struct{}
-	notifyConnClose chan *amqp.Error
-	isReady         bool
+	qName      string
+	connection *amqp.Connection
+	done       chan struct{}
+	isReady    bool
 }
 
 func NewMaster(ctx context.Context, qName, busHost, busUser, busPass string) (*Master, error) {
@@ -40,8 +39,6 @@ func (s *Master) connect(_ context.Context, busHost, busUser, busPass string) er
 	}
 
 	s.connection = conn
-	s.notifyConnClose = make(chan *amqp.Error, 1)
-	s.connection.NotifyClose(s.notifyConnClose)
 	s.isReady = true
 	log.Println("Consumer: CONNECTED")
 

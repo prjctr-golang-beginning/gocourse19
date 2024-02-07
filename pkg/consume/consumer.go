@@ -2,7 +2,7 @@ package consume
 
 import (
 	"context"
-	c "gocourse19/pkg/consume/brief"
+	c "gocourse19/pkg/consume/full"
 	"log"
 	"time"
 )
