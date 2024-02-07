@@ -2,7 +2,7 @@ package produce
 
 import (
 	"context"
-	p "gocourse19/pkg/produce/fool"
+	p "gocourse19/pkg/produce/brief"
 	"log"
 	"time"
 )

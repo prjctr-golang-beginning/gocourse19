@@ -1,4 +1,4 @@
-package fool
+package full
 
 import (
 	"context"
